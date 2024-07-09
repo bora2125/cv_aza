@@ -1,6 +1,6 @@
-pandas==2.2.0
-pandas-profiling==3.6.6
 streamlit==1.31.1
-streamlit-option-menu==0.3.12
+pandas==2.2.0
+plotly==5.18.0
+pillow==10.2.0
+requests==2.31.0
 streamlit-plotly-events==0.0.6
-requests
