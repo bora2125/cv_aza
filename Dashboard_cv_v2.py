@@ -8,6 +8,8 @@ import colorsys
 import pandas as pd
 from PIL import Image
 from streamlit_plotly_events import plotly_events
+import requests
+from io import BytesIO
 
 # Configuración de la página de Streamlit
 st.set_page_config(page_title="Detecciones de Personas", page_icon="👥", layout="wide")
@@ -16,17 +18,32 @@ st.title("Visualización de Detecciones de Personas")
 # Rango minutos
 rango_minutos = 20
 
+# GitHub repository information
+GITHUB_REPO = "bora2125/cv_aza"
+GITHUB_BRANCH = "main"
+GITHUB_FOLDER = "person_count_output"
+
+# Function to get raw GitHub URL
+def get_github_raw_url(filename):
+    return f"https://raw.githubusercontent.com/{GITHUB_REPO}/{GITHUB_BRANCH}/{GITHUB_FOLDER}/{filename}"
+
 # Función para cargar y procesar los datos
-def load_data(directory):
+def load_data(github_folder):
     pattern = r"Zone_(\d+)_person_(\d+)_(\d{8})_(\d{6})"
     detections = []
     
-    for filename in os.listdir(directory):
-        match = re.match(pattern, filename)
-        if match:
-            zone, person_id, date, time = match.groups()
-            timestamp = datetime.strptime(f"{date}_{time}", "%Y%m%d_%H%M%S")
-            detections.append((timestamp, int(zone), int(person_id), filename))
+    # Get list of files from GitHub API
+    api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{github_folder}"
+    response = requests.get(api_url)
+    if response.status_code == 200:
+        files = response.json()
+        for file in files:
+            filename = file['name']
+            match = re.match(pattern, filename)
+            if match:
+                zone, person_id, date, time = match.groups()
+                timestamp = datetime.strptime(f"{date}_{time}", "%Y%m%d_%H%M%S")
+                detections.append((timestamp, int(zone), int(person_id), filename))
     
     detections.sort()  # Ordenar de más antiguo a más reciente
     return detections
@@ -42,16 +59,7 @@ def generate_colors(n):
             for r, g, b in [colorsys.hsv_to_rgb(*x) for x in HSV_tuples]]
 
 # Cargar los datos
-directory = st.sidebar.text_input("Directorio de datos", "person_count_output")
-if not os.path.exists(directory):
-    st.error(f"El directorio {directory} no existe. Por favor, ingrese un directorio válido.")
-    st.stop()
-
-# Añadir un botón de actualización
-if st.sidebar.button('Actualizar datos'):
-    st.experimental_rerun()
-
-detections = load_data(directory)
+detections = load_data(GITHUB_FOLDER)
 
 # Calcular el rango de tiempo por defecto (últimas 3 horas)
 end_time = detections[-1][0] if detections else datetime.now()  # La detección más reciente
@@ -156,14 +164,18 @@ def show_image_and_info(index):
     if 0 <= index < len(filenames):
         st.session_state.current_image_index = index
         image_filename = filenames[index]
-        image_path = os.path.join(directory, image_filename)
+        image_url = get_github_raw_url(image_filename)
         
-        if os.path.exists(image_path):
-            image = Image.open(image_path)
-            st.session_state.image = image
-            st.session_state.image_caption = image_filename
-        else:
-            st.error(f"No se pudo encontrar la imagen: {image_filename}")
+        try:
+            response = requests.get(image_url)
+            if response.status_code == 200:
+                image = Image.open(BytesIO(response.content))
+                st.session_state.image = image
+                st.session_state.image_caption = image_filename
+            else:
+                st.error(f"No se pudo cargar la imagen: {image_filename}")
+        except Exception as e:
+            st.error(f"Error al cargar la imagen: {str(e)}")
 
 # Mostrar la imagen inicial (la más reciente)
 show_image_and_info(st.session_state.current_image_index)            
