@@ -8,7 +8,7 @@ import colorsys
 import pandas as pd
 from PIL import Image
 from streamlit_plotly_events import plotly_events
-import requests
+import boto3
 from io import BytesIO
 
 # Configuración de la página de Streamlit
@@ -18,32 +18,34 @@ st.title("Visualización de Detecciones de Personas")
 # Rango minutos
 rango_minutos = 20
 
-# GitHub repository information
-GITHUB_REPO = "bora2125/cv_aza"
-GITHUB_BRANCH = "main"
-GITHUB_FOLDER = "person_count_output"
+# AWS S3 configuration
+S3_BUCKET_NAME = "trialbucket-cv"
+S3_FOLDER = "person_count_output/"
 
-# Function to get raw GitHub URL
-def get_github_raw_url(filename):
-    return f"https://raw.githubusercontent.com/{GITHUB_REPO}/{GITHUB_BRANCH}/{GITHUB_FOLDER}/{filename}"
+# Initialize S3 client
+s3_client = boto3.client('s3')
+
+# Function to list objects in S3 bucket
+def list_s3_objects(bucket, prefix):
+    paginator = s3_client.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+    
+    for page in pages:
+        for obj in page.get('Contents', []):
+            yield obj['Key']
 
 # Función para cargar y procesar los datos
-def load_data(github_folder):
+def load_data(s3_folder):
     pattern = r"Zone_(\d+)_person_(\d+)_(\d{8})_(\d{6})"
     detections = []
     
-    # Get list of files from GitHub API
-    api_url = f"https://api.github.com/repos/{GITHUB_REPO}/contents/{github_folder}"
-    response = requests.get(api_url)
-    if response.status_code == 200:
-        files = response.json()
-        for file in files:
-            filename = file['name']
-            match = re.match(pattern, filename)
-            if match:
-                zone, person_id, date, time = match.groups()
-                timestamp = datetime.strptime(f"{date}_{time}", "%Y%m%d_%H%M%S")
-                detections.append((timestamp, int(zone), int(person_id), filename))
+    for key in list_s3_objects(S3_BUCKET_NAME, s3_folder):
+        filename = os.path.basename(key)
+        match = re.match(pattern, filename)
+        if match:
+            zone, person_id, date, time = match.groups()
+            timestamp = datetime.strptime(f"{date}_{time}", "%Y%m%d_%H%M%S")
+            detections.append((timestamp, int(zone), int(person_id), key))
     
     detections.sort()  # Ordenar de más antiguo a más reciente
     return detections
@@ -59,7 +61,7 @@ def generate_colors(n):
             for r, g, b in [colorsys.hsv_to_rgb(*x) for x in HSV_tuples]]
 
 # Cargar los datos
-detections = load_data(GITHUB_FOLDER)
+detections = load_data(S3_FOLDER)
 
 # Calcular el rango de tiempo por defecto (últimas 3 horas)
 end_time = detections[-1][0] if detections else datetime.now()  # La detección más reciente
@@ -103,7 +105,7 @@ filenames = []
 
 for interval_start, interval_detections in grouped_detections.items():
     x = interval_start + timedelta(minutes=rango_minutos/2)  # Punto medio del intervalo
-    for i, (timestamp, zone, person_id, filename) in enumerate(interval_detections):
+    for i, (timestamp, zone, person_id, key) in enumerate(interval_detections):
         x_data.append(x)
         y_data.append(i)
         colors.append(zone_colors[zone])
@@ -111,7 +113,7 @@ for interval_start, interval_detections in grouped_detections.items():
                            f"Zona: {zone}<br>"
                            f"ID de persona: {person_id}")
         zone_counts[zone] += 1
-        filenames.append(filename)
+        filenames.append(key)
 
 # Crear el gráfico interactivo
 fig = go.Figure(data=go.Scatter(
@@ -163,17 +165,14 @@ if 'current_image_index' not in st.session_state:
 def show_image_and_info(index):
     if 0 <= index < len(filenames):
         st.session_state.current_image_index = index
-        image_filename = filenames[index]
-        image_url = get_github_raw_url(image_filename)
+        image_key = filenames[index]
         
         try:
-            response = requests.get(image_url)
-            if response.status_code == 200:
-                image = Image.open(BytesIO(response.content))
-                st.session_state.image = image
-                st.session_state.image_caption = image_filename
-            else:
-                st.error(f"No se pudo cargar la imagen: {image_filename}")
+            response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=image_key)
+            image_data = response['Body'].read()
+            image = Image.open(BytesIO(image_data))
+            st.session_state.image = image
+            st.session_state.image_caption = os.path.basename(image_key)
         except Exception as e:
             st.error(f"Error al cargar la imagen: {str(e)}")
 
@@ -213,13 +212,13 @@ st.header("Estadísticas de detecciones")
 
 # Crear un DataFrame con todas las detecciones
 detections_data = []
-for timestamp, zone, person_id, filename in filtered_detections:
+for timestamp, zone, person_id, key in filtered_detections:
     detections_data.append({
         'Fecha': timestamp.date(),
         'Hora': timestamp.time(),
         'Zona': zone,
         'ID de Persona': person_id,
-        'Archivo': filename
+        'Archivo': os.path.basename(key)
     })
 
 stats_df = pd.DataFrame(detections_data)
