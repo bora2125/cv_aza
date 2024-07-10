@@ -554,8 +554,8 @@ def main():
 
     sidebar()
     
-    # Solo mostramos top_navigation si no estamos en la página de alertas
-    if st.session_state.current_page != "alerts":
+    # Solo mostramos top_navigation si no estamos en las páginas de alertas o análisis visual
+    if st.session_state.current_page not in ["alerts", "visual_analysis"]:
         top_navigation()
     
     if st.session_state.current_page == "alerts":
