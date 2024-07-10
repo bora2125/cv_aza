@@ -2021,15 +2021,23 @@ def show_alerts_section():
         
         st.session_state.current_page = "alerts"
 
-        # Display navigation buttons side by side
-        col1, col2, col3 = st.columns([3,1,1])
+        # Display navigation buttons centered with additional buttons for +/- 10 images
+        col1, col2, col3, col4, col5 = st.columns([1,1,1,1,1])
         with col2:
+            if st.button("⏪ -10", key="back_10_button"):
+                st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 10)
+                st.experimental_rerun()
+        with col3:
             if st.button("⬅️ Anterior", key="prev_button"):
                 st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 1)
                 st.experimental_rerun()
-        with col3:
+        with col4:
             if st.button("Siguiente ➡️", key="next_button"):
                 st.session_state.current_index = max(0, st.session_state.current_index - 1)
+                st.experimental_rerun()
+        with col5:
+            if st.button("+10 ⏩", key="forward_10_button"):
+                st.session_state.current_index = max(0, st.session_state.current_index - 10)
                 st.experimental_rerun()
         
         # Display current image and thumbnails
@@ -2039,27 +2047,6 @@ def show_alerts_section():
         st.write(f"Imagen {st.session_state.current_index + 1} de {len(filenames)}")
     else:
         st.info("No se encontraron alertas.")
-
-# Función principal
-def main():
-    # Initialize session state
-    if 'current_page' not in st.session_state:
-        st.session_state.current_page = "overview"
-    if 'current_index' not in st.session_state:
-        st.session_state.current_index = 0
-
-    sidebar()
-    top_navigation()
-    
-    if st.session_state.current_page == "alerts":
-        show_alerts_section()
-    else:
-        filters()
-        col1, col2 = st.columns(2)
-        with col1:
-            category_distribution()
-        with col2:
-            alert_count()
 
 if __name__ == "__main__":
     main()
