@@ -2321,7 +2321,10 @@ def main():
         st.session_state.current_index = 0
 
     sidebar()
-    top_navigation()
+    
+    # Solo mostramos top_navigation si no estamos en la página de alertas
+    if st.session_state.current_page != "alerts":
+        top_navigation()
     
     if st.session_state.current_page == "alerts":
         show_alerts_section()
