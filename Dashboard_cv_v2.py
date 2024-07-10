@@ -1006,10 +1006,10 @@ def show_image_and_info(index, filenames):
                     thumbnail_data = response['Body'].read()
                     thumbnail = Image.open(BytesIO(thumbnail_data))
                     thumbnail.thumbnail((100, 100))
-                    if st.button(f"Imagen {i+1}", key=f"thumb_{i}"):
+                    # Usar st.image con on_click para hacer la miniatura clickeable
+                    if st.image(thumbnail, width=100, caption=f"Imagen {i+1}", use_column_width=False):
                         st.session_state.current_index = i
                         st.experimental_rerun()
-                    st.image(thumbnail, width=100)
                 except Exception as e:
                     st.error(f"Error al cargar la miniatura {i+1}: {str(e)}")
 
@@ -1047,9 +1047,9 @@ def show_alerts_section():
     if filtered_detections:
         filenames = [d[3] for d in filtered_detections]
         
-        # Initialize current_index in session_state if it doesn't exist
+        # Initialize current_index to the last image (most recent) if it doesn't exist
         if 'current_index' not in st.session_state:
-            st.session_state.current_index = 0
+            st.session_state.current_index = len(filenames) - 1
 
         # Display navigation buttons
         col1, col2, col3 = st.columns([1,3,1])
