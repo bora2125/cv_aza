@@ -588,7 +588,6 @@
 #     main()
 
 
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
@@ -663,23 +662,24 @@ def sidebar():
     with st.sidebar:
         st.markdown("# 👁️ AZ/AI")
         st.title("Demo")
-        st.button("Control room", key="control_room")
-        st.button("Ergonomics", key="ergonomics")
-        st.button("Visual analysis", key="visual_analysis")
-        if st.button("Alerts", key="alerts"):
-            st.session_state.show_alerts = True
-        else:
-            st.session_state.show_alerts = False
+        if st.button("Control room", key="control_room"):
+            st.session_state.current_page = "control_room"
+        if st.button("Ergonomics", key="ergonomics"):
+            st.session_state.current_page = "ergonomics"
+        if st.button("Visual analysis", key="visual_analysis"):
+            st.session_state.current_page = "visual_analysis"
+        if st.button("Alerts", key="alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
+            st.session_state.current_page = "alerts"
 
 # Función para crear la barra de navegación superior
 def top_navigation():
     col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
     with col1:
         if st.button("Overview"):
-            st.session_state.show_alerts = False
+            st.session_state.current_page = "overview"
     with col2:
-        if st.button("Alerts"):
-            st.session_state.show_alerts = True
+        if st.button("Alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
+            st.session_state.current_page = "alerts"
     with col3:
         st.button("Compliance")
     with col4:
@@ -793,9 +793,11 @@ def show_alerts_section():
         with col1:
             if st.button("⬅️ Anterior", key="prev_button"):
                 st.session_state.current_index = max(0, st.session_state.current_index - 1)
+                st.experimental_rerun()
         with col3:
             if st.button("Siguiente ➡️", key="next_button"):
                 st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 1)
+                st.experimental_rerun()
         
         # Display current image
         show_image_and_info(st.session_state.current_index, filenames)
@@ -808,13 +810,13 @@ def show_alerts_section():
 # Función principal
 def main():
     # Initialize session state
-    if 'show_alerts' not in st.session_state:
-        st.session_state.show_alerts = False
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = "overview"
 
     sidebar()
     top_navigation()
     
-    if st.session_state.show_alerts:
+    if st.session_state.current_page == "alerts":
         show_alerts_section()
     else:
         filters()
