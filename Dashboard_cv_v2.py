@@ -2148,12 +2148,14 @@ def sidebar():
     with st.sidebar:
         st.markdown("# 👁️ AZ/AI")
         st.title("Demo")
+        if st.button("Control room", key="control_room"):
+            st.session_state.current_page = "control_room"
+        if st.button("Ergonomics", key="ergonomics"):
+            st.session_state.current_page = "ergonomics"
         if st.button("Visual analysis", key="visual_analysis"):
             st.session_state.current_page = "visual_analysis"
         if st.button("Alerts", key="alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
-            st.session_state.current_page = "alerts"    
-        if st.button("Control room", key="control_room"):
-            st.session_state.current_page = "control_room"
+            st.session_state.current_page = "alerts"
 
 # Función para crear la barra de navegación superior
 def top_navigation():
@@ -2267,10 +2269,14 @@ def show_image_and_info(index, filenames):
                     thumbnail_data = response['Body'].read()
                     thumbnail = Image.open(BytesIO(thumbnail_data))
                     thumbnail.thumbnail((100, 100))
-                    # Hacer la miniatura clickeable
-                    if st.image(thumbnail, width=100):
-                        st.session_state.current_index = i
-                        st.experimental_rerun()
+                    # Crear un contenedor para la imagen y el botón
+                    col_thumb, col_button = st.columns([3, 1])
+                    with col_thumb:
+                        st.image(thumbnail, width=100)
+                    with col_button:
+                        if st.button("Ver", key=f"thumb_{i}"):
+                            st.session_state.current_index = i
+                            st.experimental_rerun()
                 except Exception as e:
                     st.error(f"Error al cargar la miniatura {i+1}: {str(e)}")
 
