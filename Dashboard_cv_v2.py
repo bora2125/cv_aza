@@ -2678,4 +2678,5 @@ def main():
         with col2:
             alert_count()
 
-if __
+if __name__ == "__main__":
+    main()
