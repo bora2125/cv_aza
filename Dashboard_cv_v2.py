@@ -2106,6 +2106,13 @@ st.markdown("""
     .stButton>button:hover {
         background-color: #2E2E2E;
     }
+    .main > div:first-child {
+        padding-top: 0rem;
+    }
+    h1 {
+        margin-top: -1rem;
+        margin-bottom: 1rem;
+    }
     </style>
     """, unsafe_allow_html=True)
 
