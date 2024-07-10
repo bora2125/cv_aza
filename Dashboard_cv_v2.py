@@ -2107,10 +2107,10 @@ st.markdown("""
         background-color: #2E2E2E;
     }
     .main > div:first-child {
-        padding-top: 0rem;
+        padding-top: 5rem;
     }
     h1 {
-        margin-top: 5rem;
+        margin-top: -1rem;
         margin-bottom: 1rem;
     }
     </style>
