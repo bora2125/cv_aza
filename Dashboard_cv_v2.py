@@ -2262,7 +2262,7 @@ def show_image_and_info(index, filenames):
         with col2:
             st.write("Imágenes anteriores:")
             # Mostrar 3 miniaturas de las imágenes anteriores
-            for i in range(index + 1, min(index + 4, len(filenames))):
+            for i in range(index + 1, min(index + 5, len(filenames))):
                 thumbnail_key = filenames[i]
                 try:
                     response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=thumbnail_key)
