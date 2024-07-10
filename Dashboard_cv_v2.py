@@ -529,12 +529,6 @@ def top_navigation():
     with col3:
         st.button("Compliance")
     with col4:
-        st.button("Accuracy")
-    with col5:
-        st.button("Connectivity")
-    with col6:
-        st.button("Targets")
-    with col7:
         st.download_button("Save as PDF", "data", file_name="report.pdf")
 
 # Función para crear los filtros
