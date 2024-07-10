@@ -1911,6 +1911,10 @@ def top_navigation():
         st.button("Compliance")
     with col4:
         st.download_button("Save as PDF", "data", file_name="report.pdf")
+    with col5:
+        if st.button("Recargar datos"):
+            st.session_state.detections = load_data(S3_FOLDER)
+            st.success("Datos recargados exitosamente!")
 
 # Función para crear los filtros
 def filters():
@@ -1998,11 +2002,6 @@ def show_image_and_info(index, filenames):
 def show_alerts_section():
     st.header("Alertas")
 
-    # Botón para recargar datos manualmente
-    if st.button("Recargar datos"):
-        st.session_state.detections = load_data(S3_FOLDER)
-        st.success("Datos recargados exitosamente!")
-
     # Cargar los datos
     if 'detections' not in st.session_state:
         st.session_state.detections = load_data(S3_FOLDER)
@@ -2022,9 +2021,9 @@ def show_alerts_section():
         
         st.session_state.current_page = "alerts"
 
-        # Display navigation buttons
-        col1, col2, col3 = st.columns([1,3,1])
-        with col1:
+        # Display navigation buttons side by side
+        col1, col2, col3 = st.columns([3,1,1])
+        with col2:
             if st.button("⬅️ Anterior", key="prev_button"):
                 st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 1)
                 st.experimental_rerun()
@@ -2064,4 +2063,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
