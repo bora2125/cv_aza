@@ -722,20 +722,41 @@
 
 
 
-
 import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+from datetime import datetime, timedelta
 
 # Configuración de la página
 st.set_page_config(page_title="Intenseye Demo", layout="wide")
 
+# Aplicar estilos personalizados
+st.markdown("""
+    <style>
+    .sidebar .sidebar-content {
+        background-color: #1E1E1E;
+        color: white;
+    }
+    .stButton>button {
+        width: 100%;
+        background-color: #1E1E1E;
+        color: white;
+        border: none;
+        text-align: left;
+        padding: 10px;
+    }
+    .stButton>button:hover {
+        background-color: #2E2E2E;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 # Función para crear la barra lateral
 def sidebar():
     with st.sidebar:
-        st.image("logo.png", width=150)  # Asegúrate de tener una imagen de logo
-        st.title("Intenseye Demo Account")
+        st.markdown("# 👁️ Intenseye")
+        st.title("Demo Account")
         st.button("Control room", key="control_room")
         st.button("Ergonomics", key="ergonomics")
         st.button("Visual analysis", key="visual_analysis")
@@ -774,7 +795,7 @@ def filters():
     with col4:
         st.selectbox("Type", ["All types"])
     with col5:
-        st.date_input("Date Range")
+        st.date_input("Date Range", [datetime.now() - timedelta(days=7), datetime.now()])
 
 # Función para crear el gráfico circular
 def category_distribution():
@@ -783,6 +804,11 @@ def category_distribution():
         'Value': [10, 20, 15, 5, 30, 20]
     }
     fig = px.pie(data, values='Value', names='Category', title='Category distribution')
+    fig.update_traces(textposition='inside', textinfo='percent+label')
+    fig.update_layout(
+        showlegend=False,
+        margin=dict(l=20, r=20, t=40, b=20),
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 # Función para crear el gráfico de líneas
@@ -800,7 +826,13 @@ def alert_count():
     fig = go.Figure()
     for column in df.columns[1:]:
         fig.add_trace(go.Scatter(x=df['Date'], y=df[column], mode='lines', name=column))
-    fig.update_layout(title='Alert count per category', xaxis_title='Date', yaxis_title='Count')
+    fig.update_layout(
+        title='Alert count per category',
+        xaxis_title='Date',
+        yaxis_title='Count',
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+        margin=dict(l=20, r=20, t=60, b=20),
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 # Función principal
@@ -814,6 +846,8 @@ def main():
         category_distribution()
     with col2:
         alert_count()
+
+    # Añadir más contenido aquí según sea necesario
 
 if __name__ == "__main__":
     main()
