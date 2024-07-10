@@ -1097,13 +1097,12 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
-from datetime import datetime, timedelta
+from datetime import datetime
 import boto3
 from io import BytesIO
 from PIL import Image
 import os
 import re
-from collections import defaultdict
 
 # Configuración de la página
 st.set_page_config(page_title="AZ/AI Demo", layout="wide")
@@ -1159,7 +1158,7 @@ def load_data(s3_folder):
             timestamp = datetime.strptime(f"{date}_{time}", "%Y%m%d_%H%M%S")
             detections.append((timestamp, int(zone), int(person_id), key))
     
-    detections.sort()  # Ordenar de más antiguo a más reciente
+    detections.sort(reverse=True)  # Ordenar de más reciente a más antiguo
     return detections
 
 # Función para crear la barra lateral
@@ -1285,7 +1284,7 @@ def show_alerts_section():
         
         # Initialize current_index in session_state to show the most recent image
         if 'current_index' not in st.session_state or st.session_state.current_page != "alerts":
-            st.session_state.current_index = len(filenames) - 1  # Index of the most recent image
+            st.session_state.current_index = 0  # Index of the most recent image (now at the start of the list)
         
         st.session_state.current_page = "alerts"
 
@@ -1293,11 +1292,11 @@ def show_alerts_section():
         col1, col2, col3 = st.columns([1,3,1])
         with col1:
             if st.button("⬅️ Anterior", key="prev_button"):
-                st.session_state.current_index = max(0, st.session_state.current_index - 1)
+                st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 1)
                 st.experimental_rerun()
         with col3:
             if st.button("Siguiente ➡️", key="next_button"):
-                st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 1)
+                st.session_state.current_index = max(0, st.session_state.current_index - 1)
                 st.experimental_rerun()
         
         # Display current image and thumbnails
