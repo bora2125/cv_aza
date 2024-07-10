@@ -2247,7 +2247,7 @@ def show_image_and_info(index, filenames):
                 st.session_state.current_index = max(0, st.session_state.current_index - 10)
                 st.experimental_rerun()
 
-        col1, col2 = st.columns([3, 1])
+        col1, col2 = st.columns([4, 1])
         
         with col1:
             image_key = filenames[index]
