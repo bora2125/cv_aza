@@ -981,7 +981,7 @@ def alert_count():
     )
     st.plotly_chart(fig, use_container_width=True)
 
-# Función modificada para mostrar la imagen principal y las miniaturas
+# Función mejorada para mostrar la imagen principal y las miniaturas
 def show_image_and_info(index, filenames):
     if 0 <= index < len(filenames):
         col1, col2 = st.columns([3, 1])
@@ -994,23 +994,24 @@ def show_image_and_info(index, filenames):
                 image = Image.open(BytesIO(image_data))
                 st.image(image, caption=os.path.basename(image_key), use_column_width=True)
             except Exception as e:
-                st.error(f"Error al cargar la imagen: {str(e)}")
+                st.error(f"Error al cargar la imagen principal: {str(e)}")
         
         with col2:
             st.write("Miniaturas:")
-            # Mostrar 3 miniaturas
-            for i in range(max(0, index - 1), min(len(filenames), index + 2)):
+            # Mostrar 3 miniaturas de las imágenes anteriores
+            for i in range(max(0, index - 3), index):
                 thumbnail_key = filenames[i]
                 try:
                     response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=thumbnail_key)
                     thumbnail_data = response['Body'].read()
                     thumbnail = Image.open(BytesIO(thumbnail_data))
                     thumbnail.thumbnail((100, 100))
-                    if st.image(thumbnail, caption=f"Imagen {i+1}", width=100):
+                    if st.button(f"Imagen {i+1}", key=f"thumb_{i}"):
                         st.session_state.current_index = i
                         st.experimental_rerun()
+                    st.image(thumbnail, width=100)
                 except Exception as e:
-                    st.error(f"Error al cargar la miniatura: {str(e)}")
+                    st.error(f"Error al cargar la miniatura {i+1}: {str(e)}")
 
 # Función modificada para mostrar la sección de alertas
 def show_alerts_section():
