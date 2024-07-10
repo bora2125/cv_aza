@@ -275,7 +275,7 @@ st.markdown("""
         background-color: #2E2E2E;
     }
     .main > div:first-child {
-        padding-top: 1rem;
+        padding-top: 1.5rem;
     }
     h1 {
         margin-top: -1rem;
