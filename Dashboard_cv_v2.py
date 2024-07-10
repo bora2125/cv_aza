@@ -2156,6 +2156,10 @@ def sidebar():
             st.session_state.current_page = "visual_analysis"
         if st.button("Alerts", key="alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
             st.session_state.current_page = "alerts"
+        if st.button("Recargar datos"):
+            st.session_state.detections = load_data(S3_FOLDER)
+            st.success("Datos recargados exitosamente!")
+            
 
 # Función para crear la barra de navegación superior
 def top_navigation():
@@ -2170,10 +2174,7 @@ def top_navigation():
         st.button("Compliance")
     with col4:
         st.download_button("Save as PDF", "data", file_name="report.pdf")
-    with col5:
-        if st.button("Recargar datos"):
-            st.session_state.detections = load_data(S3_FOLDER)
-            st.success("Datos recargados exitosamente!")
+
 
 # Función para crear los filtros
 def filters():
