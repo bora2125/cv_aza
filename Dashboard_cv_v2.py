@@ -323,14 +323,15 @@ def sidebar():
     with st.sidebar:
         st.markdown("# 👁️ AZ/AI")
         st.title("Demo")
-        if st.button("Control room", key="control_room"):
-            st.session_state.current_page = "control_room"
-        if st.button("Ergonomics", key="ergonomics"):
-            st.session_state.current_page = "ergonomics"
+        if st.button("Alerts", key="alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
+            st.session_state.current_page = "alerts"        
         if st.button("Visual analysis", key="visual_analysis"):
             st.session_state.current_page = "visual_analysis"
-        if st.button("Alerts", key="alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
-            st.session_state.current_page = "alerts"
+            
+        if st.button("Control room (ROI)", key="control_room"):
+            st.session_state.current_page = "control_room"
+
+
         if st.button("Recargar datos"):
             st.session_state.detections = load_data(S3_FOLDER)
             st.success("Datos recargados exitosamente!")
