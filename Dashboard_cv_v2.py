@@ -2268,7 +2268,7 @@ def show_image_and_info(index, filenames):
                     response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=thumbnail_key)
                     thumbnail_data = response['Body'].read()
                     thumbnail = Image.open(BytesIO(thumbnail_data))
-                    thumbnail.thumbnail((150, 150))  # Aumentado el tamaño de la miniatura
+                    thumbnail.thumbnail((180, 180))  # Aumentado el tamaño de la miniatura
                     # Crear un contenedor para la imagen y el botón
                     col_thumb, col_button = st.columns([5, 1])  # Ajustado la proporción
                     with col_thumb:
