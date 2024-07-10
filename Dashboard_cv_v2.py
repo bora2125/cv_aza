@@ -2274,7 +2274,7 @@ def show_image_and_info(index, filenames):
                     with col_thumb:
                         st.image(thumbnail, width=150)  # Aumentado el ancho de la imagen
                     with col_button:
-                        if st.button("Ver", key=f"thumb_{i}", help="Click para ver esta imagen"):
+                        if st.button("👁️", key=f"thumb_{i}", help="Click para ver esta imagen"):
                             st.session_state.current_index = i
                             st.experimental_rerun()
                 except Exception as e:
