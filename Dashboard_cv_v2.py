@@ -2048,5 +2048,26 @@ def show_alerts_section():
     else:
         st.info("No se encontraron alertas.")
 
+# Función principal
+def main():
+    # Initialize session state
+    if 'current_page' not in st.session_state:
+        st.session_state.current_page = "overview"
+    if 'current_index' not in st.session_state:
+        st.session_state.current_index = 0
+
+    sidebar()
+    top_navigation()
+    
+    if st.session_state.current_page == "alerts":
+        show_alerts_section()
+    else:
+        filters()
+        col1, col2 = st.columns(2)
+        with col1:
+            category_distribution()
+        with col2:
+            alert_count()
+
 if __name__ == "__main__":
     main()
