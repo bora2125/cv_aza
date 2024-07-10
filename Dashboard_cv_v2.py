@@ -2268,13 +2268,13 @@ def show_image_and_info(index, filenames):
                     response = s3_client.get_object(Bucket=S3_BUCKET_NAME, Key=thumbnail_key)
                     thumbnail_data = response['Body'].read()
                     thumbnail = Image.open(BytesIO(thumbnail_data))
-                    thumbnail.thumbnail((100, 100))
+                    thumbnail.thumbnail((150, 150))  # Aumentado el tamaño de la miniatura
                     # Crear un contenedor para la imagen y el botón
-                    col_thumb, col_button = st.columns([3, 1])
+                    col_thumb, col_button = st.columns([4, 1])  # Ajustado la proporción
                     with col_thumb:
-                        st.image(thumbnail, width=100)
+                        st.image(thumbnail, width=150)  # Aumentado el ancho de la imagen
                     with col_button:
-                        if st.button("Ver", key=f"thumb_{i}"):
+                        if st.button("Ver", key=f"thumb_{i}", help="Click para ver esta imagen"):
                             st.session_state.current_index = i
                             st.experimental_rerun()
                 except Exception as e:
