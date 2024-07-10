@@ -2230,11 +2230,11 @@ def show_image_and_info(index, filenames):
     if 0 <= index < len(filenames):
         # Botones de navegación centrados
         col1, col2, col3, col4, col5 = st.columns([1,1,1,1,1])
-        with col2:
+        with col1:
             if st.button("⏪ -10", key="back_10_button"):
                 st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 10)
                 st.experimental_rerun()
-        with col3:
+        with col2:
             if st.button("⬅️ Anterior", key="prev_button"):
                 st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 1)
                 st.experimental_rerun()
