@@ -642,6 +642,7 @@ def list_s3_objects(bucket, prefix):
             yield obj['Key']
 
 # Función para cargar y procesar los datos
+@st.cache_data
 def load_data(s3_folder):
     pattern = r"Zone_(\d+)_person_(\d+)_(\d{8})_(\d{6})"
     detections = []
@@ -674,7 +675,8 @@ def sidebar():
 def top_navigation():
     col1, col2, col3, col4, col5, col6, col7 = st.columns(7)
     with col1:
-        st.button("Overview")
+        if st.button("Overview"):
+            st.session_state.show_alerts = False
     with col2:
         if st.button("Alerts"):
             st.session_state.show_alerts = True
@@ -789,10 +791,10 @@ def show_alerts_section():
         # Display navigation buttons
         col1, col2, col3 = st.columns([1,3,1])
         with col1:
-            if st.button("⬅️ Anterior"):
+            if st.button("⬅️ Anterior", key="prev_button"):
                 st.session_state.current_index = max(0, st.session_state.current_index - 1)
         with col3:
-            if st.button("Siguiente ➡️"):
+            if st.button("Siguiente ➡️", key="next_button"):
                 st.session_state.current_index = min(len(filenames) - 1, st.session_state.current_index + 1)
         
         # Display current image
@@ -805,10 +807,14 @@ def show_alerts_section():
 
 # Función principal
 def main():
+    # Initialize session state
+    if 'show_alerts' not in st.session_state:
+        st.session_state.show_alerts = False
+
     sidebar()
     top_navigation()
     
-    if st.session_state.get('show_alerts', False):
+    if st.session_state.show_alerts:
         show_alerts_section()
     else:
         filters()
@@ -820,4 +826,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
