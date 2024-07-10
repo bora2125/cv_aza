@@ -486,7 +486,7 @@ import plotly.express as px
 from datetime import datetime, timedelta
 
 # Configuración de la página
-st.set_page_config(page_title="Intenseye Demo", layout="wide")
+st.set_page_config(page_title="AZ/AI Demo", layout="wide")
 
 # Aplicar estilos personalizados
 st.markdown("""
@@ -512,15 +512,12 @@ st.markdown("""
 # Función para crear la barra lateral
 def sidebar():
     with st.sidebar:
-        st.markdown("# 👁️ Intenseye")
-        st.title("Demo Account")
+        st.markdown("# 👁️ AZ/AI")
+        st.title("Demo")
         st.button("Control room", key="control_room")
         st.button("Ergonomics", key="ergonomics")
         st.button("Visual analysis", key="visual_analysis")
-        st.button("Facilities", key="facilities")
         st.button("Alerts", key="alerts")
-        st.button("Reports", key="reports")
-        st.button("EHS Suite", key="ehs_suite")
 
 # Función para crear la barra de navegación superior
 def top_navigation():
