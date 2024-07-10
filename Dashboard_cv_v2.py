@@ -1218,19 +1218,11 @@ def filters():
         camera = st.selectbox("Camera", ["All cameras"])
     with col4:
         event_type = st.selectbox("Type", ["All types"])
-        
-    col5, col6 = st.columns(2)
     with col5:
         start_date = st.date_input("Start Date", datetime.now().date() - timedelta(days=7))
-        start_time = st.time_input("Start Time", datetime.min.time())
-    with col6:
         end_date = st.date_input("End Date", datetime.now().date())
-        end_time = st.time_input("End Time", datetime.max.time())
     
-    start_datetime = datetime.combine(start_date, start_time)
-    end_datetime = datetime.combine(end_date, end_time)
-    
-    return facility, section, camera, event_type, start_datetime, end_datetime
+    return facility, section, camera, event_type, start_date, end_date
 
 # Función para aplicar filtros a los datos
 def apply_filters(detections, facility, section, camera, event_type, start_date, end_date):
