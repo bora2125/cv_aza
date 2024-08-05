@@ -654,7 +654,7 @@ def load_data(s3_folder):
 # Función para crear la barra lateral
 def sidebar():
     with st.sidebar:
-        st.markdown("# 👁️ AZ/AI")
+        st.markdown("# 👁️ AZA-AI")
         st.title("Demo")
         if st.button("Alerts", key="alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
             st.session_state.current_page = "alerts"        
