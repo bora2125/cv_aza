@@ -587,7 +587,7 @@ import re
 from collections import defaultdict
 
 # Configuración de la página
-st.set_page_config(page_title="AZ/AI Demo", layout="wide")
+st.set_page_config(page_title="AZA-AI Demo", layout="wide")
 
 # Aplicar estilos personalizados
 st.markdown("""
