@@ -587,7 +587,7 @@ import re
 from collections import defaultdict
 
 # Configuración de la página
-st.set_page_config(page_title="AZA-AI Demo", layout="wide")
+st.set_page_config(page_title="AZA-IA Demo", layout="wide")
 
 # Aplicar estilos personalizados
 st.markdown("""
@@ -654,7 +654,7 @@ def load_data(s3_folder):
 # Función para crear la barra lateral
 def sidebar():
     with st.sidebar:
-        st.markdown("# 👁️ AZA-AI")
+        st.markdown("# 👁️ AZA-IA")
         st.title("Demo")
         if st.button("Alerts", key="alerts", type="primary" if st.session_state.current_page == "alerts" else "secondary"):
             st.session_state.current_page = "alerts"        
