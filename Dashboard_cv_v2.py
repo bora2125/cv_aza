@@ -1,3 +1,5 @@
+#### APLICACION FRENTE BODEDGA ACERÍA ####
+
 # import streamlit as st
 # import pandas as pd
 # import plotly.graph_objects as go
@@ -294,11 +296,135 @@
 
 
 
+# import streamlit as st
+# import boto3
+# from io import BytesIO
+# from PIL import Image
+# import os
+
+# # Configuración de la página
+# st.set_page_config(page_title="AZA-IA Demo Simplificada", layout="wide")
+
+# # Aplicar estilos personalizados
+# st.markdown("""
+#     <style>
+#     .sidebar .sidebar-content {
+#         background-color: #1E1E1E;
+#         color: white;
+#     }
+#     .stButton>button {
+#         width: 100%;
+#         background-color: #1E1E1E;
+#         color: white;
+#         border: none;
+#         text-align: left;
+#         padding: 10px;
+#     }
+#     .stButton>button:hover {
+#         background-color: #2E2E2E;
+#     }
+#     .main > div:first-child {
+#         padding-top: 1.5rem;
+#     }
+#     h1 {
+#         margin-top: -1rem;
+#         margin-bottom: 1rem;
+#     }
+#     </style>
+#     """, unsafe_allow_html=True)
+
+# # Configuración de AWS S3
+# S3_BUCKET_NAME = "trialbucket-cv"
+# CAM1_FOLDER = "detections/cam1/"
+# CAM2_FOLDER = "detections/cam2/"
+
+# # Inicializar el cliente de S3
+# s3_client = boto3.client('s3')
+
+# # Función para listar objetos en una carpeta específica de S3
+# def list_s3_images(bucket, prefix):
+#     try:
+#         paginator = s3_client.get_paginator('list_objects_v2')
+#         pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+#         image_keys = []
+#         for page in pages:
+#             for obj in page.get('Contents', []):
+#                 key = obj['Key']
+#                 if key.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+#                     image_keys.append(key)
+#         return sorted(image_keys, reverse=True)  # Ordenar de más reciente a más antiguo
+#     except Exception as e:
+#         st.error(f"Error al listar objetos en S3: {e}")
+#         return []
+
+# # Función para cargar una imagen desde S3
+# def load_image(bucket, key):
+#     try:
+#         response = s3_client.get_object(Bucket=bucket, Key=key)
+#         image_data = response['Body'].read()
+#         image = Image.open(BytesIO(image_data))
+#         return image
+#     except Exception as e:
+#         st.error(f"Error al cargar la imagen {key}: {e}")
+#         return None
+
+# # Función para crear la barra lateral
+# def sidebar():
+#     with st.sidebar:
+#         st.markdown("# 👁️ AZA-IA")
+#         st.title("Demo Simplificada")
+#         if st.button("Recargar imágenes"):
+#             st.session_state.reload = True
+#             st.experimental_rerun()
+
+# # Función para mostrar las imágenes
+# def show_images():
+#     st.header("Visualización de Imágenes desde S3")
+
+#     # Selección de cámara
+#     camera = st.selectbox("Selecciona la cámara", ["cam1", "cam2"])
+
+#     # Definir la carpeta según la selección
+#     if camera == "cam1":
+#         images = list_s3_images(S3_BUCKET_NAME, CAM1_FOLDER)
+#     else:
+#         images = list_s3_images(S3_BUCKET_NAME, CAM2_FOLDER)
+
+#     st.subheader(f"Imágenes de {camera}")
+
+#     if images:
+#         # Mostrar imágenes en un layout de cuadrícula
+#         cols = st.columns(3)  # Ajusta el número de columnas según prefieras
+#         for idx, image_key in enumerate(images):
+#             image = load_image(S3_BUCKET_NAME, image_key)
+#             if image:
+#                 with cols[idx % 3]:
+#                     st.image(image, caption=os.path.basename(image_key), use_column_width=True)
+#     else:
+#         st.info("No se encontraron imágenes en la carpeta seleccionada.")
+
+# # Función principal
+# def main():
+#     # Inicializar estado de recarga
+#     if 'reload' not in st.session_state:
+#         st.session_state.reload = False
+
+#     sidebar()
+#     show_images()
+
+# if __name__ == "__main__":
+#     main()
+
+
+
 import streamlit as st
 import boto3
 from io import BytesIO
 from PIL import Image
 import os
+import re
+from datetime import datetime
+from collections import defaultdict
 
 # Configuración de la página
 st.set_page_config(page_title="AZA-IA Demo Simplificada", layout="wide")
@@ -339,18 +465,38 @@ CAM2_FOLDER = "detections/cam2/"
 # Inicializar el cliente de S3
 s3_client = boto3.client('s3')
 
-# Función para listar objetos en una carpeta específica de S3
+# Función para listar objetos en una carpeta específica de S3 y extraer fechas
 def list_s3_images(bucket, prefix):
     try:
         paginator = s3_client.get_paginator('list_objects_v2')
         pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
         image_keys = []
+        image_dates = []
+        pattern = r"Zone_(\d+)_person_(\d+)_(\d{8})_(\d{6})"  # Ajusta este patrón según el formato de tus nombres de archivos
+
         for page in pages:
             for obj in page.get('Contents', []):
                 key = obj['Key']
                 if key.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
-                    image_keys.append(key)
-        return sorted(image_keys, reverse=True)  # Ordenar de más reciente a más antiguo
+                    # Intentar extraer la fecha del nombre del archivo
+                    filename = os.path.basename(key)
+                    match = re.match(pattern, filename)
+                    if match:
+                        date_str = match.group(3)  # Asumiendo que el grupo 3 es la fecha en formato YYYYMMDD
+                        try:
+                            date = datetime.strptime(date_str, "%Y%m%d").date()
+                        except ValueError:
+                            date = None
+                    else:
+                        # Si no coincide el patrón, usar la fecha de última modificación de S3
+                        date = obj['LastModified'].date()
+                    
+                    if date:
+                        image_keys.append(key)
+                        image_dates.append(date)
+        # Combinar las listas y ordenarlas por fecha descendente
+        images_with_dates = sorted(zip(image_keys, image_dates), key=lambda x: x[1], reverse=True)
+        return images_with_dates
     except Exception as e:
         st.error(f"Error al listar objetos en S3: {e}")
         return []
@@ -375,31 +521,52 @@ def sidebar():
             st.session_state.reload = True
             st.experimental_rerun()
 
-# Función para mostrar las imágenes
-def show_images():
+# Función para mostrar las imágenes con filtro de fecha
+def show_images(images_with_dates):
     st.header("Visualización de Imágenes desde S3")
 
     # Selección de cámara
     camera = st.selectbox("Selecciona la cámara", ["cam1", "cam2"])
 
-    # Definir la carpeta según la selección
+    # Filtrar imágenes por cámara
     if camera == "cam1":
-        images = list_s3_images(S3_BUCKET_NAME, CAM1_FOLDER)
+        filtered_images = [img for img in images_with_dates if img[0].startswith(CAM1_FOLDER)]
     else:
-        images = list_s3_images(S3_BUCKET_NAME, CAM2_FOLDER)
+        filtered_images = [img for img in images_with_dates if img[0].startswith(CAM2_FOLDER)]
 
-    st.subheader(f"Imágenes de {camera}")
+    # Extraer las fechas disponibles para el filtro
+    if filtered_images:
+        dates = [img[1] for img in filtered_images]
+        min_date = min(dates)
+        max_date = max(dates)
+    else:
+        min_date = datetime.today().date()
+        max_date = datetime.today().date()
 
-    if images:
+    # Selección de rango de fechas
+    st.sidebar.markdown("## Filtrar por Fecha")
+    start_date = st.sidebar.date_input("Fecha de inicio", min_value=min_date, max_value=max_date, value=min_date)
+    end_date = st.sidebar.date_input("Fecha de fin", min_value=min_date, max_value=max_date, value=max_date)
+
+    if start_date > end_date:
+        st.sidebar.error("La fecha de inicio no puede ser posterior a la fecha de fin.")
+        return
+
+    # Filtrar las imágenes según el rango de fechas seleccionado
+    final_images = [img for img in filtered_images if start_date <= img[1] <= end_date]
+
+    st.subheader(f"Imágenes de {camera} desde {start_date} hasta {end_date}")
+
+    if final_images:
         # Mostrar imágenes en un layout de cuadrícula
         cols = st.columns(3)  # Ajusta el número de columnas según prefieras
-        for idx, image_key in enumerate(images):
+        for idx, (image_key, image_date) in enumerate(final_images):
             image = load_image(S3_BUCKET_NAME, image_key)
             if image:
                 with cols[idx % 3]:
-                    st.image(image, caption=os.path.basename(image_key), use_column_width=True)
+                    st.image(image, caption=f"{os.path.basename(image_key)}\nFecha: {image_date}", use_column_width=True)
     else:
-        st.info("No se encontraron imágenes en la carpeta seleccionada.")
+        st.info("No se encontraron imágenes en el rango de fechas seleccionado.")
 
 # Función principal
 def main():
@@ -408,7 +575,16 @@ def main():
         st.session_state.reload = False
 
     sidebar()
-    show_images()
+
+    # Cargar y almacenar las imágenes con sus fechas en el estado de la sesión
+    if 'images_with_dates' not in st.session_state or st.session_state.reload:
+        with st.spinner("Cargando imágenes desde S3..."):
+            st.session_state.images_with_dates = list_s3_images(S3_BUCKET_NAME, "")  # "" para listar todas las carpetas
+        st.session_state.reload = False
+
+    images_with_dates = st.session_state.images_with_dates
+
+    show_images(images_with_dates)
 
 if __name__ == "__main__":
     main()
